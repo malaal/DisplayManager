@@ -12,8 +12,12 @@
 
 task_t displayManager_task; //The OS handle to the display manager task
 
-/* Create (and start) the display manager task. This requires a pre-defined task priority and a stack size (or some OS default),
-   which are not defined in this sample code. */
+/*********************
+ * Public Functions
+ *********************/
+
+/* Create (and start) the display manager task. This requires a pre-defined task priority and a stack size
+   (or some OS default), which are not defined in this sample code. */
 bool displayManager_init(void)
 {
     bool ret = FALSE; //default return value is Success
@@ -39,10 +43,15 @@ bool displayManager_signal(uint8_t event)
     return OS_SET_EVENT(displayManager_task, event);
 }
 
-/* This function gets the current time and updates the time in an LED display setting */
+/*********************
+ * Private Functions
+ *********************/
+
+/* This function gets the current time and updates the time in an LED display setting struct */
 static void displayManager_time_to_display(display_setting_t* setting)
 {
-    time_t now = rtc_getTime();
+    time_t now = rtc_getTime(); //Assume this returns the current time in hours/minutes at least
+
     alarm_state_t alarmState;
     alarmManager_getState(&alarmState);
 
@@ -54,7 +63,7 @@ static void displayManager_time_to_display(display_setting_t* setting)
     setting->minute[1]     = now.minute % 10;
 }
 
-/* This function gets the current alarm setting and updates the time in an LED display setting */
+/* This function gets the current alarm setting and updates the time in an LED display setting struct */
 static void displayManager_alarm_to_display(display_setting_t* setting)
 {
     alarm_state_t alarmState;
@@ -65,13 +74,15 @@ static void displayManager_alarm_to_display(display_setting_t* setting)
 
     if (setting->alarm_enabled)
     {
-        setting->hour[0]   = now.hour / 10;
-        setting->hour[1]   = now.hour % 10;
-        setting->minute[0] = now.minute / 10;
-        setting->minute[1] = now.minute % 10;
+        //Alarm enabled. Show HH:MM
+        setting->hour[0]   = alarmState.hour / 10;
+        setting->hour[1]   = alarmState.hour % 10;
+        setting->minute[0] = alarmState.minute / 10;
+        setting->minute[1] = alarmState.minute % 10;
     }
     else
     {
+        //Alarm disabled. Show --:--
         setting->hour[0]   = DIGIT_DASH;
         setting->hour[1]   = DIGIT_DASH;
         setting->minute[0] = DIGIT_DASH;
@@ -79,18 +90,18 @@ static void displayManager_alarm_to_display(display_setting_t* setting)
     }
 }
 
-/* This function gets the current "single digit" mode setting and updates the time in an LED display setting */
+/* This function gets the current "single digit" mode setting and updates the time in an LED display setting struct */
 static void displayManager_digit_to_display(display_setting_t* setting)
 {
     alarm_state_t alarmState;
     alarmManager_getState(&alarmState);
 
-    setting->show_colon    = false; //Not a time -- no colon!
+    setting->show_colon    = false; //Not a time -- don't show the colon!
     setting->alarm_enabled = alarmState.enabled;
     setting->hour[0]       = DIGIT_BLANK;
     setting->hour[1]       = DIGIT_BLANK;
     setting->minute[0]     = DIGIT_BLANK;
-    setting->minute[1]     = DIGIT_DISPLAY; //Show the hard-coded single digit
+    setting->minute[1]     = DIGIT_DISPLAY; //Show the hard-coded single digit in the right-most position
 }
 
 static void displayManager_task(void)
@@ -121,7 +132,10 @@ static void displayManager_task(void)
         */
         uint8_t event = OS_GET_EVENT(TIEMOUT_FOREVER);
 
-        /* Handle button presses first to change the mode of the display
+        /* Handle button presses first to change the mode of the display.
+           Note that if the user presses the button of the already-active mode, the timeout will reset.
+           Also the user can switch modes at any time, without waiting for the clock to go back to clock mode.
+
            We're going to test button2 first and then button 1 *without* an else if; this way if both
            event bits are set, we will go into alarm mode */
         if (event & DISPLAYMANAGER_EVT_FLAG_BUTTON2)
@@ -150,7 +164,7 @@ static void displayManager_task(void)
             }
         }
 
-        /* Now update the clock display */
+        /* Now update the clock display. */
         switch (mode)
         {
             case MODE_DIGIT:

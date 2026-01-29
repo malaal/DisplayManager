@@ -1,3 +1,11 @@
+/***
+ *
+ * Public API for the Alarm Manager
+ *
+ * Platform-independent
+ *
+ ***/
+
 #ifndef __ALARM_MANAGER_H__
 #define __ALARM_MANAGER_H__
 

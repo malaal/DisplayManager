@@ -1,3 +1,9 @@
+/***
+ *
+ * Alarm Clock LED display driver
+ *
+ ***/
+
 #ifndef __DISPLAY_DRIVER_H__
 #define __DISPLAY_DRIVER_H__
 
@@ -10,7 +16,9 @@
 /* This struct defines the clock-aware settings provided to the lower-level LED
    driver. In this settings block, each available digit of the clock is specified
    from 0-9, but it could also be DIGIT_BLANK (to show nothing) or DIGIT_DASH (to
-   show -). The alarm indicator and the colon are displayed if enabled. */
+   show -). The alarm indicator and the colon are displayed if enabled.
+
+   The colon and alarm_enabled displays are optional and depend on what the clock is showing now */
 typedef struct {
     uint8_t hour[2];
     uint8_t minute[2];
