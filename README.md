@@ -16,15 +16,15 @@ In lieu of RTOS timers, the module is driven by a synchronous, 1 second `tick()`
 
 The greater system as a whole:
  * Handles button input and debounces them using one or more of IRQs, timers, state machines, etc. When a button press/release is finalized, a call can will be made to DisplayManager (or any other component)
- * Has a realtime clock capable of generating interrupts every minute, which can be queried for the current time
- * Runs some high-level task or state machine to handle hardware events (ISR, RTC, comms, etc.) and call into modules as necessary
+ * Has a realtime clock which can be queried for the current time
+ * Runs some high-level task or state machine to handle hardware events (ISR, RTC, comms, etc.) and calls into component modules as necessary
  * Has a driver for the LED display which is aware of its operation as a clock and takes inputs which have meaning as a clock. I have provided a mock driver function `updateDisplay` that demonstrates this. In the actual implementation, this code that intereprets the clock input and drives the LED could itself be another hardware-independent layer above the LED driver itself, so that the component can be changed out as needed.
- * Has another component called AlarmManager which can be queried for the state of the alarm. Presumably if the alarm is set, this is the component which will handle it. DisplayManager would need to be updated to provide the UX for alarm changes (and support for more buttons)
+ * Has another module called AlarmManager which can be queried for the state of the alarm. Presumably if the alarm is set up by a user, this is the component which will handle it. In this case, DisplayManager would need to be updated to provide the UX for handling this.
 
-I have designed the module such that:
- * It manages the state of the display hardware internally
- * It provides a separate header/C file for externally-accessible calls (such as from the top-level state machine), and a header/c file for internal calls
- * The manager is started once after boot and runs throughout the life of the firmware
+I have designed the DisplayManager module such that:
+ * It manages the state of the display hardware internally (except for the 1-second tick)
+ * To keep the API well-abstracted, it provides a separate header/C file for externally-accessible calls (such as from the top-level state machine), and a header/c file for internal/private calls
+ * The manager is to be started once after boot and runs throughout the life of the firmware
 
 ## Design Considerations / Alternatives
 
